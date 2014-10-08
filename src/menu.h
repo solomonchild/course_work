@@ -8,10 +8,15 @@
 typedef enum 
 {
     MC_PRINT,
-    MC_HALT
+    MC_EDIT,
+    MC_HALT,
+    MC_PREV,
+    MC_NEXT,
+    MC_INVALID
 
 } menu_choice_t;
 
 menu_choice_t show_main_menu(void);
+menu_choice_t prev_next(void);
 
 #endif

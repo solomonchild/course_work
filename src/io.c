@@ -1,4 +1,7 @@
 #include "io.h"
+
+#include <stdlib.h>
+
 #define DB_NAME "db.bin"
 
 FILE* open_file()
@@ -19,11 +22,36 @@ int write_rec(FILE *fp, const record_t *rec)
     return fwrite(rec, sizeof(*rec), 1, fp);
 }
 
+void reset_cursor(FILE *fp)
+{
+    fseek(fp, 0, SEEK_SET);
+}
 int read_rec(FILE *fp, record_t *rec)
 {
     if(fp == NULL)
         return -1;
     return fread(rec, sizeof(record_t), 1, fp);
+}
+
+size_t read_all_rec(FILE *fp, record_t **rec)
+{
+    int arr_size = 5;
+    size_t res_len = 0;
+    int ret = 0;
+    record_t *arr = malloc(sizeof(record_t) * arr_size); 
+
+    while((ret = read_rec(fp, arr + res_len)) > 0)
+    {
+        if(res_len ++ >= arr_size)
+        {
+            arr_size *= 2;
+            arr = realloc(arr, sizeof(record_t) * arr_size);
+        }
+    }
+    
+    *rec = arr;
+    return res_len;
+
 }
 
 void print_rec(record_t *rec)

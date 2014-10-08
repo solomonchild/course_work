@@ -1,6 +1,9 @@
 #include "io.h"
 #include "menu.h"
-#include "errno.h"
+
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 
 void test(void)
 {
@@ -26,6 +29,81 @@ void test(void)
     close_file(fp);
 }
 
+
+void edit_rec(record_t *rec)
+{
+    if(!rec)
+        return;
+
+    printf("Enter field to edit: ");
+    char c = getchar();
+    getchar();
+    if(c == 0)
+        printf("ZERO\n");
+}
+
+void edit_records(FILE *fp)
+{
+    record_t *rec = NULL;
+    size_t len = read_all_rec(fp, &rec);
+    int i = 0;
+
+    if(len > 0)
+    {
+        while(1)
+        {
+            edit_rec(rec + i);
+            menu_choice_t mc = prev_next();
+            if(mc == MC_NEXT && i < len)
+                i++;
+            if(mc == MC_PREV && i > 0)
+                i--;
+            if(mc == MC_INVALID)
+                break;
+        }
+    }
+    else
+    {
+        printf("Error:No recs\nPress any key to continue...");
+        getchar();
+    }
+
+
+
+
+    free(rec);
+}
+
+void view_records(FILE *fp)
+{
+    record_t *rec = NULL;
+    size_t len = read_all_rec(fp, &rec);
+
+    int i = 0;
+
+    if(len > 0)
+    {
+        while(1)
+        {
+            printf("%dth\n", i + 1);
+            print_rec(rec + i);
+            menu_choice_t mc = prev_next();
+            if(mc == MC_NEXT && i < len - 1)
+                i++;
+            if(mc == MC_PREV && i > 0)
+                i--;
+            if(mc == MC_INVALID)
+                break;
+        }
+    }
+    else
+    {
+        printf("Error:No recs\nPress any key to continue...");
+        getchar();
+    }
+    free(rec);
+
+}
 int main(int argc, char **argv)
 {
     if(argc > 1 && !strcmp(argv[1], "test"))
@@ -40,19 +118,18 @@ int main(int argc, char **argv)
     menu_choice_t ret;
     do
     {
+        reset_cursor(fp);
         ret = show_main_menu();
         switch(ret)
         {
             case(MC_PRINT):
             {
-                int ret = 0;
-                do
-                {
-                    record_t rec;
-                    ret = read_rec(fp, &rec);
-                    print_rec(&rec);
-                }
-                while(ret > 0);
+                view_records(fp);
+                break;
+            }
+            case(MC_EDIT):
+            {
+
                 break;
             }
             default:

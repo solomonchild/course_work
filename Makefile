@@ -3,7 +3,7 @@ NAME:=course.exe
 CC:= gcc
 LN:= gcc
 INCLUDES:= -Isrc -Iinclude
-CFLAGS:= $(INCLUDES)
+CFLAGS:= $(INCLUDES) --std=c99
 LIBS:=
 
 SOURCE:= $(wildcard src/*)
