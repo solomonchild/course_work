@@ -4,6 +4,14 @@
 
 #define DB_NAME "db.bin"
 
+int get_input()
+{
+    int c;
+    c = getchar();
+    getchar();
+    return c;
+}
+
 char const * const record_field_names[] =
 {
     "Name",
@@ -31,6 +39,11 @@ int write_rec(FILE *fp, const record_t *rec)
         return -1;
     fseek(fp, 0, SEEK_END);
     return fwrite(rec, sizeof(*rec), 1, fp);
+}
+
+void reopen_wipe(FILE *fp)
+{
+    freopen(DB_NAME, "w+b", fp);
 }
 
 void reset_cursor(FILE *fp)
@@ -66,6 +79,7 @@ size_t read_all_rec(FILE *fp, record_t **rec)
     return res_len;
 
 }
+
 
 void print_rec(record_t *rec)
 {

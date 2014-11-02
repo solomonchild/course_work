@@ -1,5 +1,8 @@
 @ECHO OFF
 make
-if ERRORLEVEL 0 (
-bin\course.exe %1
+if %ERRORLEVEL% NEQ 0 (
+    goto HALT
 )
+bin\course.exe %1
+
+:HALT

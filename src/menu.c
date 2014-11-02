@@ -1,49 +1,34 @@
 #include "menu.h"
 
+#include "io.h"
+
 menu_choice_t show_main_menu(void)
 {
 
     printf("Menu:\n"
             "----\n"
-            "Print records:%d\n"
-            "Edit records:%d\n"
+            "View recs:%d\n"
+            "Add a record:%d\n"
             "Exit :%d\n"
-            "Enter your choice: ", MC_PRINT, MC_EDIT_RECS, MC_HALT);
-    int c;
-    c = getchar();
-    getchar();
+            "Enter your choice: ", MC_VIEW, MC_ADD_REC, MC_QUIT);
+    int c = get_input();
     return c - '0';
 }
 
 
-menu_choice_t prev_next(void)
+menu_choice_t prev_next(int what)
 {
-    printf("N/n for next, P/p for previous, other char to quit: ");
-    int c;
-    c = getchar();
-    getchar();
+    if(what & MO_NEXT)
+        printf("N/n for next");
+    if(what & MO_PREV)
+        printf(", P/p for next");
+    if(what & MO_EDIT)
+        printf(", E/e to edit");
+    if(what & MO_SEARCH)
+        printf(", S/s to search");
+    printf(", other char to quit: "); 
 
-    switch(c)
-    {
-        case 'N':
-        case 'n':
-            return MC_NEXT;
-        case 'P':
-        case 'p':
-            return MC_PREV;
-    }
-    return MC_INVALID;
-}
-
-
-
-menu_choice_t prev_next_edit(void)
-{
-    printf("N/n for next, P/p for previous, E/e to edit, other char to quit: ");
-    int c;
-    c = getchar();
-    getchar();
-
+    int c = get_input();
     switch(c)
     {
         case 'N':
@@ -55,6 +40,10 @@ menu_choice_t prev_next_edit(void)
         case 'E':
         case 'e':
             return MC_EDIT;
+        case 'S':
+        case 's':
+            return MC_SEARCH;
     }
     return MC_INVALID;
 }
+

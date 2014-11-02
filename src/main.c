@@ -30,6 +30,71 @@ void test(void)
 }
 
 
+void search_field(record_t const *rec, size_t rec_len, int fieldnum)
+{
+    const char *field_name = record_field_names[fieldnum - 1]; 
+    char buf[30] = { 0 };
+    printf("Enter value for %s: ", field_name);
+    scanf("%30s", buf);
+    getchar();
+    const char *dest = NULL;
+    size_t len = 0;
+    switch(fieldnum)
+    {
+        
+        case 1: 
+		{
+            dest = rec->name;                
+            len = sizeof(rec->name);
+            break;
+		}
+
+        case 2: 
+		{
+            dest = rec->surname;                
+            len = sizeof(rec->surname);
+            break;
+		}
+
+        case 3: 
+		{
+            dest = rec->id;                
+            len = sizeof(rec->id);
+            break;
+		}
+
+        case 4: 
+		{
+            dest = rec->subject;                
+            len = sizeof(rec->subject);
+            break;
+		}
+
+        case 5: 
+		{
+            dest = rec->mark;                
+            len = sizeof(rec->mark);
+            break;
+		}
+
+        case 6: 
+		{
+            dest = rec->t_name;                
+            len = sizeof(rec->t_name);
+            break;
+		}
+
+        case 7: 
+		{
+            dest = rec->t_surname;                
+            len = sizeof(rec->t_surname);
+            break;
+        }
+
+    }
+
+}
+
 void change_field(record_t *rec, int fieldnum)
 {
     const char *field_name = record_field_names[fieldnum - 1]; 
@@ -111,49 +176,30 @@ void edit_rec(record_t *rec)
         printf("Error: no such field %d\n", choice);
 }
 
-void edit_records(FILE *fp)
+void search_rec(record_t const *rec, size_t len)
 {
-    record_t *rec = NULL;
-    size_t len = read_all_rec(fp, &rec);
-    printf("RECS LEN : %d\n", len);
-    int i = 0;
+    if(!rec)
+        return;
 
-    if(len > 0)
-    {
-        while(1)
-        {
-            printf("%dth\n", i + 1);
-            print_rec(rec + i);
-            menu_choice_t mc = prev_next_edit();
-            if(mc == MC_EDIT)
-                edit_rec(rec + i);
-            if(mc == MC_NEXT && i < len - 1)
-                i++;
-            if(mc == MC_PREV && i > 0)
-                i--;
-            if(mc == MC_INVALID)
-                break;
-        }
-    }
+    printf("Enter field number (1-7) to search: ");
+    char c = getchar();
+    getchar();
+    int choice = c - '0';
+    if(choice >= 1 && choice <= 7)
+        search_field(rec, len, choice);
     else
-    {
-        printf("Error:No recs\nPress any key to continue...");
-        getchar();
-    }
-    
-    reset_cursor(fp);
-    printf("RECS LEN B4 write: %d\n", len);
-    for(int i =0; i < len; i++)
-        write_rec(fp, rec + i);
-
-    free(rec);
+        printf("Error: no such field %d\n", choice);
 }
 
-void view_records(FILE *fp)
+void dump_recs(FILE *fp, record_t *recs, size_t len)
 {
-    record_t *rec = NULL;
-    size_t len = read_all_rec(fp, &rec);
-    printf("read : %d\n", len);
+    reopen_wipe(fp);
+    for(int i =0; i < len; i++)
+        write_rec(fp, recs + i);
+}
+
+void view_records(FILE *fp, record_t *rec, size_t len)
+{
 
     int i = 0;
 
@@ -163,12 +209,21 @@ void view_records(FILE *fp)
         {
             printf("%dth\n", i + 1);
             print_rec(rec + i);
-            menu_choice_t mc = prev_next();
+            menu_choice_t mc = prev_next(MO_NEXT | MO_PREV | MO_SEARCH | MO_EDIT);
             if(mc == MC_NEXT && i < len - 1)
+            {
                 i++;
-            if(mc == MC_PREV && i > 0)
+            }
+            else if(mc == MC_PREV && i > 0)
+            {
                 i--;
-            if(mc == MC_INVALID)
+            }
+            else if(mc == MC_EDIT)
+            {
+                edit_rec(rec + i);
+                dump_recs(fp, rec, len);
+            }
+            else if(mc == MC_INVALID)
                 break;
         }
     }
@@ -177,8 +232,6 @@ void view_records(FILE *fp)
         printf("Error:No recs\nPress any key to continue...");
         getchar();
     }
-    free(rec);
-
 }
 
 int main(int argc, char **argv)
@@ -193,25 +246,26 @@ int main(int argc, char **argv)
     }
 
     menu_choice_t ret;
+    record_t *recs = NULL;
     do
     {
         reset_cursor(fp);
+        size_t len = read_all_rec(fp, &recs);
         ret = show_main_menu();
         switch(ret)
         {
-            case(MC_PRINT):
+            case(MC_VIEW):
             {
-                view_records(fp);
+                view_records(fp, recs, len);
                 break;
             }
-            case(MC_EDIT_RECS):
+            case(MC_ADD_REC):
             {
-                edit_records(fp);
                 break;
             }
             default:
                 break;
         }
     }
-    while(ret != MC_HALT);
+    while(ret != MC_QUIT);
 }
